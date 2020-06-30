@@ -15,25 +15,12 @@
 // specific language governing permissions and limitations
 // under the License..
 
-#![allow(clippy::not_unsafe_ptr_arg_deref)]
-extern crate libc;
-extern crate sgx_types;
-
-mod enclave;
-pub mod mem;
-pub mod time;
-pub mod fd;
-pub mod file;
-pub mod socket;
-pub mod asyncio;
-pub mod env;
-pub mod sys;
-pub mod pipe;
-pub mod event;
-pub mod thread;
-pub mod net;
-#[cfg(feature = "signal")]
-pub mod signal;
-pub mod process;
-pub mod sgxfs;
-pub use enclave::*;
+cfg_if! {
+    if #[cfg(feature = "mesalock_sgx")] {
+        mod deps_t;
+        pub use deps_t::*;
+    } else {
+        mod deps_u;
+        pub use deps_u::*;
+    }
+}

@@ -15,25 +15,20 @@
 // specific language governing permissions and limitations
 // under the License..
 
-#![allow(clippy::not_unsafe_ptr_arg_deref)]
-extern crate libc;
-extern crate sgx_types;
+use std::env;
 
-mod enclave;
-pub mod mem;
-pub mod time;
-pub mod fd;
-pub mod file;
-pub mod socket;
-pub mod asyncio;
-pub mod env;
-pub mod sys;
-pub mod pipe;
-pub mod event;
-pub mod thread;
-pub mod net;
-#[cfg(feature = "signal")]
-pub mod signal;
-pub mod process;
-pub mod sgxfs;
-pub use enclave::*;
+fn main() {
+    let sdk_dir = env::var("SGX_SDK").unwrap_or_else(|_| "/opt/intel/sgxsdk".to_string());
+    let is_sim = env::var("SGX_MODE").unwrap_or_else(|_| "HW".to_string());
+
+    println!("cargo:rustc-link-search=native=../lib");
+    println!("cargo:rustc-link-lib=static=Enclave_u");
+
+    println!("cargo:rustc-link-search=native={}/lib64", sdk_dir);
+    println!("cargo:rustc-link-lib=static=sgx_uprotected_fs");
+    match is_sim.as_ref() {
+        "SW" => println!("cargo:rustc-link-lib=dylib=sgx_urts_sim"),
+        "HW" => println!("cargo:rustc-link-lib=dylib=sgx_urts"),
+        _ => println!("cargo:rustc-link-lib=dylib=sgx_urts"), // Treat undefined as HW
+    }
+}

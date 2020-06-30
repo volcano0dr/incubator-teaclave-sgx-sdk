@@ -1,0 +1,37 @@
+[package]
+name = "sgx_fs"
+version = "1.1.2"
+authors = ["The Teaclave Authors"]
+repository = "https://github.com/apache/teaclave-sgx-sdk"
+license-file = "LICENSE"
+documentation = "https://dingelish.github.io/"
+description = "Rust SGX SDK provides the ability to write Intel SGX applications in Rust Programming Language."
+edition = "2018"
+
+[lib]
+name = "sgx_fs"
+crate-type = ["rlib"]
+
+[features]
+default = ["mesalock_sgx"]
+uspfs = ["sgx_ucrypto", "libc", "sgx_uspfs"]
+mesalock_sgx = [
+    "sgx_trts",
+    "sgx_tstd",
+    "sgx_libc",
+    "sgx_tcrypto",
+    "sgx_tse",
+]
+
+[dependencies]
+libc = { version = "0.2", optional = true }
+sgx_ucrypto = { path = "../sgx_ucrypto", optional = true }
+sgx_uspfs = { path = "./uspfs", optional = true }
+
+[target.'cfg(not(target_env = "sgx"))'.dependencies]
+sgx_types = { path = "../sgx_types" }
+sgx_tstd = { path = "../sgx_tstd", optional = true }
+sgx_trts = { path = "../sgx_trts", optional = true }
+sgx_tse = { path = "../sgx_tse", optional = true }
+sgx_tcrypto = { path = "../sgx_tcrypto", optional = true }
+sgx_libc = { path = "../sgx_libc", optional = true }

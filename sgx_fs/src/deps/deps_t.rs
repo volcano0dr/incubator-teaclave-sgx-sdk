@@ -15,25 +15,10 @@
 // specific language governing permissions and limitations
 // under the License..
 
-#![allow(clippy::not_unsafe_ptr_arg_deref)]
-extern crate libc;
-extern crate sgx_types;
+pub use sgx_trts::error::errno;
+pub use sgx_trts::error::set_errno;
+pub use sgx_trts::memeq::ConsttimeMemEq;
+pub use sgx_trts::trts::rsgx_read_rand;
 
-mod enclave;
-pub mod mem;
-pub mod time;
-pub mod fd;
-pub mod file;
-pub mod socket;
-pub mod asyncio;
-pub mod env;
-pub mod sys;
-pub mod pipe;
-pub mod event;
-pub mod thread;
-pub mod net;
-#[cfg(feature = "signal")]
-pub mod signal;
-pub mod process;
-pub mod sgxfs;
-pub use enclave::*;
+pub use std::sync::SgxMutex as Mutex;
+pub use std::sync::SgxMutexGuard as MutexGuard;
