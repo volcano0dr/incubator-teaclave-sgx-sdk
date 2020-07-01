@@ -219,6 +219,69 @@ pub fn copy(from: &Path, to: &Path) -> io::Result<u64> {
     Ok(ret)
 }
 
+pub fn copy_with_key(
+    from: &Path,
+    from_key: &sgx_key_128bit_t,
+    to: &Path,
+    to_key: &sgx_key_128bit_t,
+) -> io::Result<u64>  {
+    use crate::fs::SgxFile;
+    use std::io::ErrorKind;
+    cfg_if! {
+        if #[cfg(feature = "mesalock_sgx")] {
+            use std::untrusted::fs;
+            use std::untrusted::path::PathEx;
+        } else {
+            use std::fs;
+        }
+    }
+
+    let metadata = from.metadata()?;
+    if !metadata.is_file() {
+        return Err(Error::new(
+            ErrorKind::InvalidInput,
+            "the source path is not an existing regular file",
+        ));
+    }
+
+    let mut reader = SgxFile::open_with_key(from, from_key)?;
+    let mut writer = SgxFile::create_with_key(to, to_key)?;
+    let perm = metadata.permissions();
+
+    let ret = io::copy(&mut reader, &mut writer)?;
+    fs::set_permissions(to, perm)?;
+    Ok(ret)
+}
+
+pub fn copy_integrity_only(from: &Path, to: &Path) -> io::Result<u64> {
+    use crate::fs::SgxFile;
+    use std::io::ErrorKind;
+    cfg_if! {
+        if #[cfg(feature = "mesalock_sgx")] {
+            use std::untrusted::fs;
+            use std::untrusted::path::PathEx;
+        } else {
+            use std::fs;
+        }
+    }
+
+    let metadata = from.metadata()?;
+    if !metadata.is_file() {
+        return Err(Error::new(
+            ErrorKind::InvalidInput,
+            "the source path is not an existing regular file",
+        ));
+    }
+
+    let mut reader = SgxFile::open_integrity_only(from)?;
+    let mut writer = SgxFile::create_integrity_only(to)?;
+    let perm = metadata.permissions();
+
+    let ret = io::copy(&mut reader, &mut writer)?;
+    fs::set_permissions(to, perm)?;
+    Ok(ret)
+}
+
 fn to_str(path: &Path) -> io::Result<&str> {
-    path.to_str().ok_or(Error::from_raw_os_error(libc::EINVAL))
+    path.to_str().ok_or_else(||Error::from_raw_os_error(libc::EINVAL))
 }

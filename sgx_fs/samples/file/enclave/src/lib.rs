@@ -445,6 +445,19 @@ fn test_rename_meta(old_name: &str, new_name: &str) {
     test_tspfs_read(new_name);
 }
 
+fn test_copy(src: &str, dst: &str) {
+    test_tspfs_write(src);
+    let ret = tspfs::copy(src, dst);
+    match ret {
+        Ok(n) => println!("copy size {}", n),
+        Err(e) => {
+            println!("copy err: {}", e);
+            return;
+        }
+    }
+    test_tspfs_read(dst);
+}
+
 #[no_mangle]
 pub extern "C" fn test_file() -> i32 {
     let key = sgx_key_128bit_t::default();
@@ -479,7 +492,13 @@ pub extern "C" fn test_file() -> i32 {
 
     test_export_import_key("sgx_file_6");
 
+    println!();
+
     test_rename_meta("sgx_file_7", "sgx_file_8");
+
+    println!();
+
+    test_copy("sgx_file_9", "sgx_file_10");
 
     let _ = tspfs::remove("sgx_file_1");
     let _ = tspfs::remove("sgx_file_2");
@@ -489,6 +508,8 @@ pub extern "C" fn test_file() -> i32 {
     let _ = tspfs::remove("sgx_file_6");
     let _ = tspfs::remove("sgx_file_7");
     let _ = tspfs::remove("sgx_file_8");
+    let _ = tspfs::remove("sgx_file_9");
+    let _ = tspfs::remove("sgx_file_10");
 
     return 0;
 }

@@ -562,7 +562,7 @@ pub struct FileNode {
 impl FileNode {
     pub fn new(node_type: NodeType) -> FileNode {
         FileNode {
-            node_type: node_type,
+            node_type,
             node_number: 0,
             need_writing: false,
             integrity_only: false,

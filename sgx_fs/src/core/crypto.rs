@@ -59,12 +59,11 @@ pub fn encrypt(
     let result = if integrity_only {
         rsgx_rijndael128GCM_encrypt(key, &[0_u8; 0], iv, &src, &mut [0_u8; 0], gmac).map(|_| {
             dst.copy_from_slice(src);
-            ()
         })
     } else {
         rsgx_rijndael128GCM_encrypt(key, src, iv, &[0_u8; 0], dst, gmac)
     };
-    result.map_err(|err| Error::from(err))
+    result.map_err(Error::from)
 }
 
 pub fn decrypt(
@@ -78,12 +77,11 @@ pub fn decrypt(
     let result = if integrity_only {
         rsgx_rijndael128GCM_decrypt(key, &[0_u8; 0], iv, src, gmac, &mut [0_u8; 0]).map(|_| {
             dst.copy_from_slice(src);
-            ()
         })
     } else {
         rsgx_rijndael128GCM_decrypt(key, src, iv, &[0_u8; 0], gmac, dst)
     };
-    result.map_err(|err| Error::from(err))
+    result.map_err(Error::from)
 }
 
 #[derive(Copy, Clone, Default, Debug)]
@@ -144,9 +142,9 @@ pub fn generate_secure_blob(
     buf.node_number = physical_node_number;
     buf.output_len = 0x80;
     buf.label[0..label.len()].copy_from_slice(label.as_bytes());
-    rsgx_read_rand(&mut buf.nonce.id[0..16]).map_err(|err| Error::from(err))?;
+    rsgx_read_rand(&mut buf.nonce.id[0..16]).map_err(Error::from)?;
 
-    rsgx_rijndael128_cmac_msg(key, &buf).map_err(|err| Error::from(err))
+    rsgx_rijndael128_cmac_msg(key, &buf).map_err(Error::from)
 }
 
 pub fn generate_secure_blob_from_key(
@@ -156,9 +154,9 @@ pub fn generate_secure_blob_from_key(
     buf.index = 0x1;
     buf.output_len = 0x80;
     buf.label[0..METADATA_KEY_NAME.len()].copy_from_slice(METADATA_KEY_NAME.as_bytes());
-    rsgx_read_rand(&mut buf.nonce.id).map_err(|err| Error::from(err))?;
+    rsgx_read_rand(&mut buf.nonce.id).map_err(Error::from)?;
 
-    let key = rsgx_rijndael128_cmac_msg(key, &buf).map_err(|err| Error::from(err))?;
+    let key = rsgx_rijndael128_cmac_msg(key, &buf).map_err(Error::from)?;
 
     Ok((key, buf.nonce))
 }
@@ -173,7 +171,7 @@ pub fn restore_secure_blob_from_key(
     buf.nonce = *key_id;
     buf.label[0..METADATA_KEY_NAME.len()].copy_from_slice(METADATA_KEY_NAME.as_bytes());
 
-    let key = rsgx_rijndael128_cmac_msg(key, &buf).map_err(|err| Error::from(err))?;
+    let key = rsgx_rijndael128_cmac_msg(key, &buf).map_err(Error::from)?;
 
     Ok((key, buf.nonce))
 }
@@ -199,9 +197,9 @@ pub fn generate_secure_blob_from_cpu(
         reserved2: [0; types::SGX_KEY_REQUEST_RESERVED2_BYTES],
     };
 
-    rsgx_read_rand(&mut key_request.key_id.id).map_err(|err| Error::from(err))?;
+    rsgx_read_rand(&mut key_request.key_id.id).map_err(Error::from)?;
 
-    let key = rsgx_get_key(&key_request).map_err(|err| Error::from(err))?;
+    let key = rsgx_get_key(&key_request).map_err(Error::from)?;
 
     Ok((key, key_request.key_id))
 }
@@ -228,7 +226,7 @@ pub fn restore_secure_blob_from_cpu(
         reserved2: [0; types::SGX_KEY_REQUEST_RESERVED2_BYTES],
     };
 
-    let key = rsgx_get_key(&key_request).map_err(|err| Error::from(err))?;
+    let key = rsgx_get_key(&key_request).map_err(Error::from)?;
 
     Ok((key, key_request.key_id))
 }
@@ -238,5 +236,5 @@ pub fn generate_report() -> FsResult<sgx_report_t> {
     let target = sgx_target_info_t::default();
     let report_data = sgx_report_data_t::default();
 
-    rsgx_create_report(&target, &report_data).map_err(|err| Error::from(err))
+    rsgx_create_report(&target, &report_data).map_err(Error::from)
 }

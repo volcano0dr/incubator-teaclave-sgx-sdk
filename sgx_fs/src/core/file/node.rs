@@ -77,7 +77,9 @@ impl ProtectedFile {
             self.read_data_node()
         };
 
-        file_data_node.as_ref().map(|node| self.bump_mht_node(node));
+        if let Some(node) = file_data_node.as_ref() {
+            self.bump_mht_node(node)
+        }
         self.remove_last_node().ok()?;
 
         file_data_node
@@ -119,7 +121,7 @@ impl ProtectedFile {
         );
         file_mht_node
             .borrow_mut()
-            .set_parent(parent_mht_node.clone());
+            .set_parent(parent_mht_node);
 
         if !self.cache.add(physical_node_number, file_mht_node.clone()) {
             self.set_last_error(Error::from(libc::ENOMEM));
@@ -202,7 +204,7 @@ impl ProtectedFile {
         );
         file_data_node
             .borrow_mut()
-            .set_parent(file_mht_node.clone());
+            .set_parent(file_mht_node);
 
         if !self.cache.add(physical_node_number, file_data_node.clone()) {
             self.set_last_error(Error::from(libc::ENOMEM));
@@ -291,8 +293,8 @@ impl ProtectedFile {
             let data = self
                 .cache
                 .back_mut()
-                .ok_or(Error::from(SGX_ERROR_UNEXPECTED))?;
-            if data.borrow().is_need_writing() == false {
+                .ok_or_else(||Error::from(SGX_ERROR_UNEXPECTED))?;
+            if !data.borrow().is_need_writing() {
                 // need_writing is in the same offset in both node types
                 // before deleting the memory, need to scrub the plain secrets
                 data.borrow_mut().clean_plain();

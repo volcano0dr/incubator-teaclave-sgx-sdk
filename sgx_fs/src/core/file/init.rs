@@ -79,7 +79,7 @@ impl ProtectedFile {
         integrity_only: bool,
     ) -> FsError {
         self.try_error(
-            filename.len() <= 0 || mode.len() <= 0,
+            filename.is_empty() || mode.is_empty(),
             libc::EINVAL,
         )?;
         self.try_error(
@@ -138,7 +138,7 @@ impl ProtectedFile {
             SGX_ERROR_FILE_NOT_SGX_FILE,
         )?;
 
-        self.recovery_filename = filename.to_string().clone();
+        self.recovery_filename = filename.to_string();
         self.recovery_filename.push_str("_recovery");
 
         if self.real_file_size > 0 {
@@ -171,17 +171,17 @@ impl ProtectedFile {
             path.file_name()
                 .unwrap_or_else(|| OsStr::new(src))
                 .to_str()
-                .ok_or(Error::from(libc::EINVAL)),
+                .ok_or_else(||Error::from(libc::EINVAL)),
         )?;
 
         self.try_error(name.len() > FILENAME_MAX_LEN - 1, libc::ENAMETOOLONG)?;
-        self.try_error(name.len() == 0, libc::EINVAL)?;
+        self.try_error(name.is_empty(), libc::EINVAL)?;
         Ok(name)
     }
 
     fn parse_mode(&mut self, mode: &str) -> FsError {
         self.try_error(
-            mode.len() <= 0 || mode.len() > MAX_MODE_STRING_LEN,
+            mode.is_empty() || mode.len() > MAX_MODE_STRING_LEN,
             libc::EINVAL,
         )?;
         for c in mode.chars() {

@@ -30,7 +30,7 @@ use std::ptr;
 
 const MILISECONDS_SLEEP_FOPEN: u32 = 10;
 const MAX_FOPEN_RETRIES: usize = 10;
-const O_LARGEFILE: c_int = 0o0100000;
+const O_LARGEFILE: c_int = 0o0_100_000;
 const NODE_SIZE: usize = 4096;
 const RECOVERY_NODE_SIZE: usize = mem::size_of::<u64>() + NODE_SIZE;
 
@@ -48,7 +48,7 @@ struct FileFd {
 
 impl FileFd {
     fn new(fd: c_int) -> FileFd {
-        FileFd { fd: fd }
+        FileFd { fd }
     }
 
     fn into_raw(self) -> c_int {
@@ -62,7 +62,7 @@ impl FileFd {
         if fd == -1 {
             Err(errno())
         } else {
-            Ok(FileFd { fd: fd })
+            Ok(FileFd { fd })
         }
     }
 
@@ -95,7 +95,7 @@ struct FileStream {
 
 impl FileStream {
     fn new(file: *mut libc::FILE) -> FileStream {
-        FileStream { file: file }
+        FileStream { file }
     }
 
     fn raw(&self) -> *mut libc::FILE {
@@ -107,7 +107,7 @@ impl FileStream {
         if file.is_null() {
             Err(errno())
         } else {
-            Ok(FileStream { file: file })
+            Ok(FileStream { file })
         }
     }
 
@@ -116,7 +116,7 @@ impl FileStream {
         if file.is_null() {
             Err(errno())
         } else {
-            Ok(FileStream { file: file })
+            Ok(FileStream { file })
         }
     }
 
@@ -205,7 +205,7 @@ pub struct File {
 
 impl File {
     pub fn open(name: &CStr, read_only: bool, size: &mut i64) -> SysResult<File> {
-        if name.to_bytes().len() <= 0 {
+        if name.to_bytes().is_empty() {
             return Err(libc::EINVAL);
         }
 
@@ -250,9 +250,7 @@ impl File {
         })?;
 
         *size = stat.st_size;
-        Ok(File {
-            file: FileStream::from(file),
-        })
+        Ok(File { file })
     }
 
     pub fn read(&mut self, number: u64, node: &mut [u8]) -> SysError {
@@ -347,14 +345,14 @@ pub struct RecoveryFile {
 
 impl RecoveryFile {
     pub fn open(name: &CStr) -> SysResult<RecoveryFile> {
-        if name.to_bytes().len() <= 0 {
+        if name.to_bytes().is_empty() {
             return Err(libc::EINVAL);
         }
 
         let mode = CStr::from_bytes_with_nul(b"wb\0").map_err(|_| libc::EINVAL)?;
         for _ in 0..MAX_FOPEN_RETRIES {
             if let Ok(file) = FileStream::fopen(name, &mode) {
-                return Ok(RecoveryFile { file: file });
+                return Ok(RecoveryFile { file });
             }
             unsafe { libc::usleep(MILISECONDS_SLEEP_FOPEN) };
         }
@@ -412,7 +410,7 @@ impl RecoveryFile {
 }
 
 pub fn remove(name: &CStr) -> SysError {
-    if name.to_bytes().len() <= 0 {
+    if name.to_bytes().is_empty() {
         return Err(libc::EINVAL);
     }
     if unsafe { libc::remove(name.as_ptr()) } == 0 {
@@ -423,7 +421,7 @@ pub fn remove(name: &CStr) -> SysError {
 }
 
 pub fn exists(name: &CStr) -> SysResult<bool> {
-    if name.to_bytes().len() <= 0 {
+    if name.to_bytes().is_empty() {
         return Err(libc::EINVAL);
     }
 
@@ -436,7 +434,7 @@ pub fn exists(name: &CStr) -> SysResult<bool> {
 }
 
 pub fn recovery(name: &CStr, recovery: &CStr) -> SysError {
-    if name.to_bytes().len() <= 0 || recovery.to_bytes().len() <= 0 {
+    if name.to_bytes().is_empty() || recovery.to_bytes().is_empty() {
         return Err(libc::EINVAL);
     }
 

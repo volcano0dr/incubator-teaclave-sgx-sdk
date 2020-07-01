@@ -51,7 +51,7 @@ impl ProtectedFile {
             | ProtectedFsStatus::SGX_FILE_STATUS_CLOSED
             | ProtectedFsStatus::SGX_FILE_STATUS_CRYPTO_ERROR
             | ProtectedFsStatus::SGX_FILE_STATUS_CORRUPTED
-            | ProtectedFsStatus::SGX_FILE_STATUS_MEMORY_CORRUPTED => return, // can't fix these...
+            | ProtectedFsStatus::SGX_FILE_STATUS_MEMORY_CORRUPTED => {}
             ProtectedFsStatus::SGX_FILE_STATUS_FLUSH_ERROR => {
                 let _ = self
                     .internal_flush(true)
@@ -152,7 +152,7 @@ impl ProtectedFile {
 
     pub fn get_meta_mac(&mut self) -> FsResult<sgx_aes_gcm_128bit_tag_t> {
         self.flush()?;
-        Ok(self.meta_data.meta_node.plain_part.meta_data_gmac.clone())
+        Ok(self.meta_data.meta_node.plain_part.meta_data_gmac)
     }
 
     pub fn rename_meta(&mut self, old_name: &str, new_name: &str) -> FsError {

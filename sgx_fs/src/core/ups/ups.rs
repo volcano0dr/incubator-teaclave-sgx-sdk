@@ -65,7 +65,7 @@ impl OsFile {
         uspfs::File::open(&cstr(name)?, read_only, &mut file_size)
             .map(|file| {
                 *size = file_size;
-                OsFile { file: file }
+                OsFile { file }
             })
             .map_err(|err| Error::from(get_error(err, libc::EACCES)))
     }
@@ -118,7 +118,7 @@ pub struct OsRecoveryFile {
 impl OsRecoveryFile {
     pub fn open(name: &str) -> FsResult<OsRecoveryFile> {
         uspfs::RecoveryFile::open(&cstr(name)?)
-            .map(|file| OsRecoveryFile { file: file })
+            .map(|file| OsRecoveryFile { file })
             .map_err(|err| Error::from(get_error(err, libc::EACCES)))
     }
 

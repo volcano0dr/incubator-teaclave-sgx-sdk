@@ -18,7 +18,7 @@
 use libc::c_int;
 
 pub const NODE_SIZE: usize = 4096;
-pub const SGX_FILE_ID: u64 = 0x5347585F46494C45;
+pub const SGX_FILE_ID: u64 = 0x5347_585F_4649_4C45;
 pub const SGX_FILE_MAJOR_VERSION: u8 = 0x01;
 pub const SGX_FILE_MINOR_VERSION: u8 = 0x00;
 

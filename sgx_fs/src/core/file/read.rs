@@ -25,7 +25,7 @@ use types::sgx_status_t::*;
 
 impl ProtectedFile {
     pub fn read(&mut self, data: &mut [u8]) -> FsResult<usize> {
-        if data.len() <= 0 {
+        if data.is_empty() {
             return Ok(0);
         }
 

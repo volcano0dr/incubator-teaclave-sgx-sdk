@@ -217,17 +217,17 @@ impl OpenOptions {
     #[cfg(feature = "mesalock_sgx")]
     fn _open(&self, path: &Path) -> io::Result<SgxFile> {
         let inner = fs_imp::SgxFile::open(path, &self.0)?;
-        Ok(SgxFile { inner: inner })
+        Ok(SgxFile { inner })
     }
 
     fn _open_with_key(&self, path: &Path, key: &sgx_key_128bit_t) -> io::Result<SgxFile> {
         let inner = fs_imp::SgxFile::open_witch_key(path, &self.0, key)?;
-        Ok(SgxFile { inner: inner })
+        Ok(SgxFile { inner })
     }
 
     fn _open_integrity_only(&self, path: &Path) -> io::Result<SgxFile> {
         let inner = fs_imp::SgxFile::open_integrity_only(path, &self.0)?;
-        Ok(SgxFile { inner: inner })
+        Ok(SgxFile { inner })
     }
 }
 
@@ -403,4 +403,17 @@ pub fn import_auto_key<P: AsRef<Path>>(path: P, key: &sgx_key_128bit_t) -> io::R
 #[cfg(feature = "mesalock_sgx")]
 pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<u64> {
     fs_imp::copy(from.as_ref(), to.as_ref())
+}
+
+pub fn copy_with_key<P: AsRef<Path>, Q: AsRef<Path>>(
+    from: P,
+    from_key: &sgx_key_128bit_t,
+    to: Q,
+    to_key: &sgx_key_128bit_t,
+) -> io::Result<u64> {
+    fs_imp::copy_with_key(from.as_ref(), from_key, to.as_ref(), to_key)
+}
+
+pub fn copy_integrity_only<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> io::Result<u64> {
+    fs_imp::copy_integrity_only(from.as_ref(), to.as_ref())
 }

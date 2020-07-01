@@ -117,7 +117,7 @@ impl ProtectedFile {
             self.erase_recovery_file();
         }
 
-        key.map(|k| {
+        if let Some(key) = key {
             if self.use_user_kdk_key() {
                 // export key is only used for auto-key
                 retval = false;
@@ -126,7 +126,7 @@ impl ProtectedFile {
                 match result {
                     Ok(restore_key) => {
                         self.cur_key = restore_key;
-                        *k = restore_key;
+                        *key = restore_key;
                     }
                     Err(err) => {
                         self.set_last_error(err);
@@ -134,7 +134,7 @@ impl ProtectedFile {
                     }
                 }
             }
-        });
+        }
 
         self.set_file_status(ProtectedFsStatus::SGX_FILE_STATUS_CLOSED);
         retval
@@ -215,7 +215,7 @@ impl ProtectedFile {
     // this function is called if we had an error after we updated the update flag
     // in normal flow, the flag is cleared when the meta-data is written to disk
     fn clear_update_flag(&mut self) {
-        assert!(self.update_flag() == false);
+        assert!(!self.update_flag());
         let _ = self
             .file
             .write(META_DATA_PHY_NUM, &self.meta_data.meta_node);
@@ -233,13 +233,13 @@ impl ProtectedFile {
                 let mht_node = node
                     .borrow()
                     .parent()
-                    .ok_or(Error::from(SGX_ERROR_UNEXPECTED))?;
+                    .ok_or_else(||Error::from(SGX_ERROR_UNEXPECTED))?;
 
                 let index = usize!(node.borrow().node_number()) % ATTACHED_DATA_NODES_COUNT;
                 let mut gcm_crypto_data = mht_node
                     .borrow()
                     .data_nodes_crypto(index)
-                    .ok_or(Error::from(SGX_ERROR_UNEXPECTED))?;
+                    .ok_or_else(||Error::from(SGX_ERROR_UNEXPECTED))?;
 
                 // encrypt data_node
                 {
@@ -279,13 +279,13 @@ impl ProtectedFile {
             let parent = mht
                 .borrow()
                 .parent()
-                .ok_or(Error::from(SGX_ERROR_UNEXPECTED))?;
+                .ok_or_else(||Error::from(SGX_ERROR_UNEXPECTED))?;
 
             let index = usize!(mht.borrow().node_number() - 1) % CHILD_MHT_NODES_COUNT;
             let mut gcm_crypto_data = parent
                 .borrow()
                 .mht_nodes_crypto(index)
-                .ok_or(Error::from(SGX_ERROR_UNEXPECTED))?;
+                .ok_or_else(||Error::from(SGX_ERROR_UNEXPECTED))?;
 
             self.cur_key = mht.borrow().derive_key(&self.session_key.update()?)?;
 
@@ -336,7 +336,7 @@ impl ProtectedFile {
 
     // don't care if it succeeded or failed...just remove the warning
     fn erase_recovery_file(&mut self) {
-        if self.recovery_filename.len() > 0 {
+        if !self.recovery_filename.is_empty() {
             let _ = ups::remove(&self.recovery_filename);
         }
     }
