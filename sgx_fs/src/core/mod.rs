@@ -164,5 +164,6 @@ mod consts;
 mod crypto;
 mod file;
 mod link;
+mod meta;
 mod nodes;
 mod ups;

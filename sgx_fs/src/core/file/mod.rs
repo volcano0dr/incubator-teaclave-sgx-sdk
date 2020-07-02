@@ -18,6 +18,7 @@
 use crate::core::cache::LruCache;
 use crate::core::consts::*;
 use crate::core::crypto::SessionKey;
+use crate::core::meta::*;
 use crate::core::nodes::*;
 use crate::core::ups::OsFile;
 use crate::error::Error;
@@ -26,6 +27,8 @@ use std::string::String;
 use types::sgx_aes_gcm_128bit_key_t;
 use types::sgx_report_t;
 use types::sgx_status_t::*;
+
+type sgx_iv_t = [u8; SGX_AESGCM_IV_SIZE];
 
 pub struct ProtectedFile {
     file: OsFile,
